@@ -114,9 +114,9 @@ if __name__ == '__main__':
 };
 
 function updateCommands() {
-  const folder = document.querySelector('#rename-folder')?.value || '.';
-  const date = document.querySelector('#rename-date')?.value || '2026.1.30';
-  const separator = document.querySelector('#rename-suffix')?.value || ' ';
+  const folder = document.querySelector('#command-folder')?.value || '.';
+  const date = document.querySelector('#command-date')?.value || '2026.1.30';
+  const separator = document.querySelector('#command-suffix')?.value || ' ';
 
   const psCommand = renameTemplates.powershellPreview({ folder, date, separator });
   const bashCommand = renameTemplates.bash({ folder, date, separator });
@@ -164,8 +164,8 @@ function populatePythonScript() {
   }
 }
 
-function initRenameForm() {
-  ['rename-folder', 'rename-date', 'rename-suffix'].forEach((id) => {
+function initCommandForm() {
+  ['command-folder', 'command-date', 'command-suffix'].forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('input', updateCommands);
@@ -174,9 +174,95 @@ function initRenameForm() {
   updateCommands();
 }
 
+function downloadBlob(response, filename) {
+  return response.blob().then((blob) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    return response.headers;
+  });
+}
+
+function initRenameSubmit() {
+  const form = document.getElementById('rename-form');
+  const fileInput = document.getElementById('rename-file');
+  const status = document.getElementById('rename-status');
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!fileInput?.files?.length) {
+      status.textContent = '请先选择包含 .docx 的 ZIP 文件。';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('date', document.getElementById('rename-date')?.value || '2026.1.30');
+    formData.append('separator', document.getElementById('rename-suffix')?.value || ' ');
+    status.textContent = '处理中...';
+
+    fetch('/api/rename', { method: 'POST', body: formData }).then((res) => {
+      if (!res.ok) {
+        res.json().then((data) => {
+          status.textContent = data.error || '处理失败';
+        });
+        return;
+      }
+      downloadBlob(res, 'renamed_docs.zip').then((headers) => {
+        const count = headers?.get('X-Renamed');
+        status.textContent = `已完成，重命名 ${count || '0'} 个文件。`;
+      });
+    }).catch(() => {
+      status.textContent = '请求失败，请检查网络或重试。';
+    });
+  });
+}
+
+function initReplaceSubmit() {
+  const form = document.getElementById('replace-form');
+  const fileInput = document.getElementById('replace-file');
+  const status = document.getElementById('replace-status');
+
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!fileInput?.files?.length) {
+      status.textContent = '请先选择包含 .docx 的 ZIP 文件。';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('replacements', document.getElementById('replace-map')?.value || '');
+    formData.append('suffix', document.getElementById('replace-suffix')?.value || '_updated');
+    status.textContent = '处理中...';
+
+    fetch('/api/replace', { method: 'POST', body: formData }).then((res) => {
+      if (!res.ok) {
+        res.json().then((data) => {
+          status.textContent = data.error || '处理失败';
+        });
+        return;
+      }
+      downloadBlob(res, 'replaced_docs.zip').then((headers) => {
+        const count = headers?.get('X-Processed');
+        status.textContent = `已完成，处理 ${count || '0'} 个文件。`;
+      });
+    }).catch(() => {
+      status.textContent = '请求失败，请检查网络或重试。';
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   populatePythonScript();
   attachCopyButtons();
   attachDownloadButtons();
-  initRenameForm();
+  initCommandForm();
+  initRenameSubmit();
+  initReplaceSubmit();
 });

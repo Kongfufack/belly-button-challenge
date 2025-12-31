@@ -1,23 +1,29 @@
 # Word 批量处理工具台
 
-一个纯前端的工具台，提供可复制/下载的脚本，方便在内网环境批量修改 Word 文件：
+一个可离线使用的工具包，提供**本地网页界面**与**命令行脚本**，帮助你在内网环境批量处理 Word 文件：
 
-- 🗂️ **批量改名**：保留公司名称，只替换文件名前缀日期，可生成 Windows / macOS / Linux 命令。
-- 📝 **批量改内容**：内置 Python + `python-docx` 示例脚本，按映射表替换正文和表格中的文本。
-- ✅ **直接可用**：所有脚本均本地运行，无需联网，可在受限环境下执行。
+- 🗂️ **批量改名**：统一日期前缀，保留公司名，可通过网页或命令行运行。
+- 📝 **批量改内容**：按映射表替换正文与表格文本，结果自动打包下载。
+- ✅ **纯本地运行**：无需联网，上传 ZIP 即可处理；或直接用脚本。
 
-## 使用方式
+## 快速开始（网页模式）
+1. 安装依赖：`pip install -r requirements.txt`
+2. 运行：`python app.py`
+3. 浏览器打开 `http://localhost:5000`
+4. 将要处理的 `.docx` 放入文件夹并压缩为 `.zip`，上传即可获得处理后的 ZIP。
 
-1. 打开 `index.html`，在“命令生成”区域填入统一日期、目录与分隔符。
-2. 复制命令或下载脚本，在公司电脑运行（先用带 `-WhatIf` 的预览脚本试跑）。
-3. 批量替换内容时，先 `pip install python-docx`，再运行下载的 `batch_replace.py`。
+## 命令行脚本（无需网页）
+- Windows PowerShell：使用页面上的命令生成器或下载 `rename-windows-*.ps1`
+- macOS / Linux：下载 `rename-macos.sh`
+- 批量替换内容：下载 `batch_replace.py`，按字典设置替换项后运行。
 
-## 文件结构
-
+## 仓库结构
 ```
-├── index.html            # 前端页面
+├── app.py                # Flask 后端，处理 ZIP 并返回结果 ZIP
+├── index.html            # 前端页面（与 app.py 一起本地运行）
+├── requirements.txt      # 依赖列表
 ├── static/
 │   ├── css/styles.css    # 自定义样式
-│   └── js/main.js        # 命令生成、复制与脚本下载逻辑
+│   └── js/main.js        # 交互逻辑：上传、调用 API、生成命令/脚本
 └── samples.json          # 示例数据（未使用）
 ```

@@ -1,55 +1,279 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Bellybutton Biodiversity</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <title>Word 批量处理工具台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="static/css/styles.css">
 </head>
 
 <body>
+  <div class="page">
+    <header class="hero text-center">
+      <div class="container">
+        <p class="eyebrow">批量改名 · 批量改字 · 本地可跑</p>
+        <h1 class="hero__title">Word 自动化一站式工具包</h1>
+        <p class="lead">无需联网，运行本地网页/服务即可完成批量改名和内容替换。</p>
+        <div class="hero__actions">
+          <a class="btn btn-primary" href="#rename-tools">批量改名</a>
+          <a class="btn btn-outline-light" href="#content-tools">批量改内容</a>
+          <a class="btn btn-outline-light" href="#scripts">命令行脚本</a>
+        </div>
+      </div>
+    </header>
 
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12 jumbotron text-center">
-        <h1>Belly Button Biodiversity Dashboard</h1>
-        <p>Use the interactive charts below to explore the dataset</p>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-2">
-        <div class="well">
-          <h5>Test Subject ID No.:</h5>
-          <select id="selDataset" onchange="optionChanged(this.value)"></select>
-        </div>
-        <div class="panel panel-primary">
-          <div class="panel-heading">
-            <h3 class="panel-title">Demographic Info</h3>
+    <main class="content container">
+      <section id="quick-start" class="section-card">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-7">
+            <h2>两种使用方式</h2>
+            <ol class="steplist">
+              <li><strong>图形界面：</strong> 启动 <code>python app.py</code>，浏览器访问 <code>http://localhost:5000</code>，上传 <code>.zip</code> 包完成处理。</li>
+              <li><strong>命令行：</strong> 直接使用下方 PowerShell / Bash / Python 脚本，在内网机器批量处理。</li>
+              <li><strong>全程本地：</strong> 不依赖外网，适合内网环境，处理完成会下载新的 <code>.zip</code>。</li>
+            </ol>
           </div>
-          <div id="sample-metadata" class="panel-body"></div>
+          <div class="col-lg-5">
+            <div class="highlight-box">
+              <h3>准备文件</h3>
+              <p>将要处理的 <code>.docx</code> 放进一个文件夹，压缩成 <code>.zip</code> 上传即可。</p>
+              <ul class="list-unstyled mb-0">
+                <li>✅ 批量改名：统一日期，保留公司名</li>
+                <li>✅ 批量改字：正文 + 表格文本替换</li>
+                <li>✅ 结果自动打包下载</li>
+              </ul>
+            </div>
+          </div>
         </div>
+      </section>
+
+      <section id="rename-tools" class="section-card">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">01</p>
+            <h2 class="mb-1">批量改名（上传 ZIP）</h2>
+            <p class="text-muted mb-0">压缩包含 <code>.docx</code> 的文件夹，上传后自动改成统一日期。</p>
+          </div>
+          <div class="badge bg-primary-subtle text-primary">本地处理 · 结果 ZIP 下载</div>
+        </div>
+
+        <form id="rename-form" class="row g-3">
+          <div class="col-md-6">
+            <label for="rename-date" class="form-label">统一日期</label>
+            <input type="text" id="rename-date" class="form-control" value="2026.1.30" />
+            <div class="form-text">接受如 2026-01-30 / 2026.1.30 等格式。</div>
+          </div>
+          <div class="col-md-6">
+            <label for="rename-suffix" class="form-label">公司名分隔符</label>
+            <input type="text" id="rename-suffix" class="form-control" value=" " />
+            <div class="form-text">日期与公司名之间的分隔符，例如空格、下划线。</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">上传包含 .docx 的 ZIP</label>
+            <input type="file" id="rename-file" accept=".zip" class="form-control" />
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">执行改名</button>
+            <div id="rename-status" class="form-text text-muted"></div>
+          </div>
+        </form>
+      </section>
+
+      <section id="content-tools" class="section-card">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">02</p>
+            <h2 class="mb-1">批量修改文档内容（上传 ZIP）</h2>
+            <p class="text-muted mb-0">提供键值对映射，替换正文和表格中的文本，输出更新后的文档包。</p>
+          </div>
+          <div class="badge bg-success-subtle text-success">本地处理 · 结果 ZIP 下载</div>
+        </div>
+
+        <form id="replace-form" class="row g-3">
+          <div class="col-12">
+            <label for="replace-map" class="form-label">替换映射（JSON）</label>
+            <textarea id="replace-map" rows="5" class="form-control">{
+  "2024.12.01": "2026.1.30",
+  "示例签名": "张三",
+  "示例公司": "XX 公司"
+}</textarea>
+            <div class="form-text">格式：{"旧文本": "新文本"}，支持多条。</div>
+          </div>
+          <div class="col-md-6">
+            <label for="replace-suffix" class="form-label">新文件后缀</label>
+            <input type="text" id="replace-suffix" class="form-control" value="_updated" />
+            <div class="form-text">如 <code>_updated</code> 会生成 <code>xxx_updated.docx</code>。</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">上传包含 .docx 的 ZIP</label>
+            <input type="file" id="replace-file" accept=".zip" class="form-control" />
+          </div>
+          <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-success">执行替换</button>
+            <div id="replace-status" class="form-text text-muted"></div>
+          </div>
+        </form>
+      </section>
+
+      <section id="scripts" class="section-card">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">03</p>
+            <h2 class="mb-1">命令行脚本备份</h2>
+            <p class="text-muted mb-0">无需网页时，可直接在 Windows / macOS / Linux 机器运行。</p>
+          </div>
+          <div class="badge bg-info-subtle text-info">可复制 · 可下载</div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="tool-card">
+              <div class="tool-card__header">
+                <div>
+                  <p class="eyebrow">命令生成</p>
+                  <h3 class="mb-1">自动拼接命令</h3>
+                  <p class="text-muted mb-0">输入目标目录与新日期，复制即用。</p>
+                </div>
+              </div>
+              <form id="command-form" class="row g-3">
+                <div class="col-12">
+                  <label for="command-folder" class="form-label">目标目录</label>
+                  <input type="text" id="command-folder" class="form-control" placeholder="例如：C:\\Users\\你\\Desktop\\Word文件" value="." />
+                  <div class="form-text">保持默认 <code>.</code> 表示当前目录。</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="command-date" class="form-label">统一日期</label>
+                  <input type="text" id="command-date" class="form-control" value="2026.1.30" />
+                  <div class="form-text">格式随意，如 2026-01-30 或 2026.1.30。</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="command-suffix" class="form-label">公司名分隔符</label>
+                  <input type="text" id="command-suffix" class="form-control" value=" " />
+                  <div class="form-text">文件名前缀与公司名之间的分隔符。</div>
+                </div>
+              </form>
+
+              <div class="code-block mt-3">
+                <div class="code-block__header">
+                  <span>PowerShell (Windows)</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-light" data-copy-target="powershell-command">复制</button>
+                  </div>
+                </div>
+                <pre><code id="powershell-command" class="language-plaintext"></code></pre>
+              </div>
+
+              <div class="code-block mt-3">
+                <div class="code-block__header">
+                  <span>Bash (macOS / Linux)</span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-light" data-copy-target="bash-command">复制</button>
+                  </div>
+                </div>
+                <pre><code id="bash-command" class="language-plaintext"></code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="tool-card h-100">
+              <div class="tool-card__header">
+                <div>
+                  <p class="eyebrow">脚本包</p>
+                  <h3 class="mb-1">直接下载到公司机器</h3>
+                  <p class="text-muted mb-0">含预览模式与正式执行两套命令。</p>
+                </div>
+              </div>
+              <div class="download-card">
+                <div>
+                  <h4 class="mb-1">PowerShell 批量改名脚本</h4>
+                  <p class="text-muted mb-0">支持先预览后执行，保留原公司名。</p>
+                </div>
+                <div class="btn-group">
+                  <button class="btn btn-primary" data-download="rename-windows-preview.ps1">下载预览脚本</button>
+                  <button class="btn btn-outline-primary" data-download="rename-windows-run.ps1">下载正式脚本</button>
+                </div>
+              </div>
+              <div class="download-card">
+                <div>
+                  <h4 class="mb-1">Bash 批量改名脚本</h4>
+                  <p class="text-muted mb-0">适用于 macOS / Linux，保留公司名。</p>
+                </div>
+                <button class="btn btn-outline-primary" data-download="rename-macos.sh">下载脚本</button>
+              </div>
+              <div class="download-card">
+                <div>
+                  <h4 class="mb-1">Python 批量替换脚本</h4>
+                  <p class="text-muted mb-0">与网页同逻辑，替换正文及表格文本。</p>
+                </div>
+                <button class="btn btn-outline-primary" data-download="batch_replace.py">下载脚本</button>
+              </div>
+              <div class="notice-box">
+                <h5>执行提示</h5>
+                <ul class="mb-0">
+                  <li>执行前先在小目录试跑，确认匹配逻辑正确。</li>
+                  <li>确保文件名确实以日期开头，否则先整理命名。</li>
+                  <li>如有不同分隔符（空格、下划线、破折号），修改上方分隔符即可。</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="section-card">
+        <div class="section-header">
+          <div>
+            <p class="eyebrow">04</p>
+            <h2 class="mb-1">现场操作流程</h2>
+            <p class="text-muted mb-0">每次执行前先备份，逐步验证后再大规模处理。</p>
+          </div>
+          <div class="badge bg-info-subtle text-info">最佳实践</div>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-6 col-xl-3">
+            <div class="workflow-step">
+              <h4>01. 创建备份</h4>
+              <p>将原始文件夹复制一份，或在 OneDrive/网盘保留快照。</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="workflow-step">
+              <h4>02. 小范围试跑</h4>
+              <p>选 2-3 个文件放入临时目录，先跑预览命令或脚本。</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="workflow-step">
+              <h4>03. 确认命名规则</h4>
+              <p>确保所有文件名都以日期开头，分隔符一致；否则先整理。</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <div class="workflow-step">
+              <h4>04. 正式批量执行</h4>
+              <p>上传 ZIP 或运行脚本完成批量改名 / 改内容。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer text-center text-muted">
+      <div class="container">
+        <p class="mb-1">Word 批量处理工具包 · 适用于 Windows / macOS / Linux</p>
+        <small>提示：本地运行，支持网页界面与命令行两种模式。</small>
       </div>
-      <div class="col-md-5">
-        <div id="bar"></div>
-      </div>
-      <div class="col-md-5">
-        <div id="gauge"></div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div id="bubble"></div>
-      </div>
-    </div>
+    </footer>
   </div>
 
-  <script src="https://d3js.org/d3.v5.min.js"></script>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script src="./static/js/app.js"></script>
-  <!-- <script src="./static/js/bonus.js"></script> -->
-  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="static/js/main.js"></script>
 </body>
 
 </html>
